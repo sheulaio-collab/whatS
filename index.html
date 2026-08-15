@@ -38,6 +38,15 @@
         .table-row-hover:hover { background-color: #f8fafc; }
         .sortable-header { cursor: pointer; user-select: none; transition: background-color 0.2s; }
         .sortable-header:hover { background-color: #f1f5f9; }
+
+        /* Pengaturan Tab */
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .menu-item.active { background-color: #eff6ff; color: #2563eb; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); font-weight: 700; }
+        .menu-item:not(.active) { color: #64748b; font-weight: 600; }
+        .menu-item:not(.active):hover { background-color: #f8fafc; color: #334155; }
     </style>
 </head>
 <body class="bg-slate-50 flex font-sans antialiased text-slate-800">
@@ -57,7 +66,7 @@
     </div>
 
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-white border-r border-gray-200 h-screen sticky top-0 flex-col z-20 hidden md:flex" id="sidebar" style="display: none;">
+    <aside class="w-64 bg-white border-r border-gray-200 h-screen sticky top-0 flex-col z-20 hidden md:flex flex-shrink-0" id="sidebar" style="display: none;">
         <div class="p-6 border-b border-gray-100 flex items-center gap-3">
             <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
                 <i class="fa-solid fa-bolt"></i>
@@ -65,8 +74,14 @@
             <h2 class="text-xl font-extrabold text-blue-600 tracking-wide">SANLUCID</h2>
         </div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href="#" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl bg-blue-50 text-blue-600 transition-all shadow-sm">
-                <i class="fa-solid fa-list w-5"></i> Katalog Produk
+            <a href="#" onclick="switchTab('catalog')" id="menu-catalog" class="menu-item active w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all">
+                <i class="fa-solid fa-list w-5 text-center"></i> Katalog Produk
+            </a>
+            <a href="#" onclick="switchTab('orders')" id="menu-orders" class="menu-item w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all">
+                <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Riwayat Pembelian
+            </a>
+            <a href="#" onclick="switchTab('gateway')" id="menu-gateway" class="menu-item w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all">
+                <i class="fa-solid fa-wallet w-5 text-center"></i> Pengaturan Gateway
             </a>
         </nav>
         <div class="p-4 border-t border-gray-100 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors" onclick="logoutAdmin()">
@@ -82,7 +97,11 @@
 
     <!-- KONTEN UTAMA -->
     <main class="flex-1 p-4 md:p-8 overflow-y-auto h-screen bg-[#f3f6fa] custom-scrollbar" id="mainContent" style="display: none;">
-        <section class="max-w-6xl mx-auto">
+        
+        <!-- ========================================== -->
+        <!-- TAB 1: KATALOG PRODUK -->
+        <!-- ========================================== -->
+        <section id="tab-catalog" class="tab-content active max-w-6xl mx-auto">
             <!-- Header & Alat Filter -->
             <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-4">
                 <div>
@@ -91,7 +110,6 @@
                 </div>
                 <div class="flex flex-wrap gap-2 w-full xl:w-auto items-center justify-start xl:justify-end">
                     
-                    <!-- TOMBOL AKTIFKAN SEMUA DI HALAMAN -->
                     <button id="btnActivatePage" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md transition flex items-center justify-center gap-2" onclick="window.activateAllOnPage()">
                         <i class="fa-solid fa-power-off"></i> Aktifkan Semua (Halaman Ini)
                     </button>
@@ -100,7 +118,6 @@
                         <i class="fa-solid fa-pen-to-square"></i> Edit Massal (<span id="bulkCount">0</span>)
                     </button>
 
-                    <!-- Dropdown Sort -->
                     <div class="relative flex-1 min-w-[160px] max-w-full xl:max-w-[200px]">
                         <select id="sortDropdown" onchange="window.handleDropdownSort(this.value)" class="w-full pl-4 pr-10 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-white cursor-pointer text-slate-600 appearance-none font-bold shadow-sm">
                             <option value="id_desc">Urut: Terbaru</option>
@@ -112,7 +129,6 @@
                         <i class="fa-solid fa-sort absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
 
-                    <!-- Input Pencarian -->
                     <div class="relative flex-1 min-w-[200px] max-w-full xl:max-w-[250px]">
                         <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
                         <input type="text" id="searchInput" oninput="window.toggleClearButton(); window.applyFilterAndSort(false)" placeholder="Cari judul / kategori..." class="w-full pl-10 pr-10 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
@@ -141,12 +157,7 @@
                             </tr>
                         </thead>
                         <tbody id="catalogTableBody" class="text-sm">
-                            <tr>
-                                <td colspan="7" class="p-12 text-center text-slate-400">
-                                    <i class="fas fa-spinner fa-spin fa-2x mb-3 text-blue-500"></i>
-                                    <p>Menarik data dari server...</p>
-                                </td>
-                            </tr>
+                            <tr><td colspan="7" class="p-12 text-center text-slate-400"><i class="fas fa-spinner fa-spin fa-2x mb-3 text-blue-500"></i><p>Menarik data dari server...</p></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -154,23 +165,98 @@
                 <!-- Paginasi -->
                 <div class="p-4 border-t border-gray-100 bg-slate-50 flex justify-between items-center text-xs text-slate-500 flex-wrap gap-3">
                     <span id="totalProductCounter" class="font-bold">Total: 0 Produk</span>
-                    
                     <div class="flex items-center gap-2 bg-white px-2 py-1.5 rounded-lg border border-gray-200 shadow-sm">
                         <button onclick="window.prevPage()" id="btnPrevPage" class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition text-slate-600"><i class="fas fa-chevron-left"></i></button>
-                        
                         <div class="flex items-center gap-1 text-xs font-bold text-slate-700">
-                            Hal 
-                            <input type="number" id="pageInput" value="1" min="1" class="w-12 text-center border border-gray-200 rounded py-1 bg-slate-50 focus:outline-none focus:border-blue-500 focus:bg-white transition-all" onchange="window.jumpToPage(this.value)">
+                            Hal <input type="number" id="pageInput" value="1" min="1" class="w-12 text-center border border-gray-200 rounded py-1 bg-slate-50 focus:outline-none focus:border-blue-500 focus:bg-white transition-all" onchange="window.jumpToPage(this.value)">
                             dari <span id="totalPagesIndicator">1</span>
                         </div>
-
                         <button onclick="window.nextPage()" id="btnNextPage" class="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition text-slate-600"><i class="fas fa-chevron-right"></i></button>
                     </div>
-
                     <span class="flex items-center gap-2 hidden md:flex"><i class="fa-solid fa-database text-green-500"></i> Data Source: TiDB Real-Time</span>
                 </div>
             </div>
         </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: RIWAYAT PEMBELIAN -->
+        <!-- ========================================== -->
+        <section id="tab-orders" class="tab-content max-w-6xl mx-auto">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800">Riwayat Pembelian</h1>
+                    <p class="text-sm text-slate-500 mt-1">Pantau transaksi pelanggan secara Real-Time.</p>
+                </div>
+                <button onclick="loadOrders()" class="neu-btn bg-white border border-gray-200 text-slate-600 hover:bg-slate-50 shadow-sm">
+                    <i class="fa-solid fa-rotate-right"></i> Segarkan Data
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden soft-shadow">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider border-b border-gray-200">
+                                <th class="p-4 font-bold rounded-tl-2xl">Waktu Transaksi</th>
+                                <th class="p-4 font-bold">Produk (E-Book)</th>
+                                <th class="p-4 font-bold">Pelanggan (Fingerprint)</th>
+                                <th class="p-4 font-bold">Nominal Pembayaran</th>
+                                <th class="p-4 font-bold">Metode Gateway</th>
+                                <th class="p-4 font-bold text-center rounded-tr-2xl">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody" class="text-sm">
+                            <tr><td colspan="6" class="p-12 text-center text-slate-400"><i class="fas fa-spinner fa-spin fa-2x mb-3 text-blue-500"></i><p>Memuat riwayat...</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: PENGATURAN GATEWAY -->
+        <!-- ========================================== -->
+        <section id="tab-gateway" class="tab-content max-w-3xl mx-auto">
+             <div class="mb-8">
+                <h1 class="text-2xl font-bold text-slate-800">Pengaturan Payment Gateway</h1>
+                <p class="text-sm text-slate-500 mt-1">Pilih jalur pembayaran utama yang akan ditampilkan di etalase toko.</p>
+            </div>
+            
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 soft-shadow">
+                <div class="flex flex-col gap-4 mb-6">
+                    <!-- Opsi Pakkasir -->
+                    <label class="flex items-start gap-4 p-5 border-2 border-gray-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-all" id="label-pakkasir">
+                        <div class="pt-1"><input type="radio" name="gateway_option" value="pakkasir" class="w-5 h-5 text-blue-600 accent-blue-600 cursor-pointer" onchange="highlightSelectedGateway()"></div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <p class="font-bold text-slate-800 text-base">Pak Kasir (Payment Gateway)</p>
+                                <span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded font-bold">Default</span>
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed mb-2">Sistem otomatis yang menerima pembayaran melalui E-Wallet, VA, dan minimarket dengan potongan admin (MDR) dari pihak ketiga.</p>
+                        </div>
+                    </label>
+
+                    <!-- Opsi QRIS Statis -->
+                    <label class="flex items-start gap-4 p-5 border-2 border-gray-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-all" id="label-qris">
+                        <div class="pt-1"><input type="radio" name="gateway_option" value="qris_statis" class="w-5 h-5 text-blue-600 accent-blue-600 cursor-pointer" onchange="highlightSelectedGateway()"></div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <p class="font-bold text-slate-800 text-base">QRIS Personal (Injeksi Dinamis)</p>
+                                <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded font-bold">Bebas Potongan</span>
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed mb-2">Menggunakan QRIS Statis warung/toko Anda pribadi. Sistem Rust akan memanipulasi CRC EMVCo secara cerdas untuk mengunci nominal pembayaran pelanggan.</p>
+                            <div class="bg-amber-50 border border-amber-100 text-amber-700 text-[10px] p-2 rounded flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Membutuhkan Aplikasi Android (Sistem Webhook) agar pesanan dapat dikonfirmasi otomatis.
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                <button onclick="saveGatewaySetting()" id="btnSaveGateway" class="neu-btn bg-blue-600 hover:bg-blue-700 text-white w-full shadow-md py-4 text-sm">
+                    <i class="fa-solid fa-save"></i> Terapkan Pengaturan ke Seluruh Sistem
+                </button>
+            </div>
+        </section>
+
     </main>
 
     <!-- MODAL EDIT MASSAL -->
@@ -180,17 +266,9 @@
                 <div class="modal-title-box"><h2><i class="fa-solid fa-layer-group"></i> Edit Produk Massal</h2></div>
                 <button class="modal-close" onclick="closeBulkEditModal()"><i class="fas fa-times"></i></button>
             </div>
-            
-            <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl mb-4 text-xs text-blue-700">
-                <i class="fas fa-info-circle mr-1"></i> Ubah harga, kategori, dan status produk secara cepat.
-            </div>
-
-            <div id="bulkEditContainer" class="custom-scrollbar" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; margin-bottom: 15px;">
-            </div>
-            
-            <button class="neu-btn bg-amber-500 hover:bg-amber-600 text-white w-full mt-2 shadow-md" id="btnSaveBulkEdit" onclick="saveBulkEdit()">
-                <i class="fa-solid fa-bolt"></i> Simpan Semua Perubahan
-            </button>
+            <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl mb-4 text-xs text-blue-700"><i class="fas fa-info-circle mr-1"></i> Ubah harga, kategori, dan status produk secara cepat.</div>
+            <div id="bulkEditContainer" class="custom-scrollbar" style="overflow-y: auto; flex-grow: 1; padding-right: 5px; margin-bottom: 15px;"></div>
+            <button class="neu-btn bg-amber-500 hover:bg-amber-600 text-white w-full mt-2 shadow-md" id="btnSaveBulkEdit" onclick="saveBulkEdit()"><i class="fa-solid fa-bolt"></i> Simpan Semua Perubahan</button>
         </div>
     </div>
 
@@ -271,7 +349,7 @@
 
     <script>
         // ==========================================
-        // PENGATURAN URL (GITHUB DIHAPUS)
+        // PENGATURAN URL
         // ==========================================
         const ADMIN_API_URL = "https://backendrust.onrender.com/api/admin"; 
         
@@ -284,7 +362,27 @@
         const itemsPerPage = 50;
 
         // ==========================================
-        // 1. SISTEM LOGIN (VERSI AMAN DENGAN VERIFIKASI)
+        // 0. TAB NAVIGATION LOGIC (BARU)
+        // ==========================================
+        function switchTab(tabId) {
+            // Sembunyikan semua tab
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Tampilkan tab yang dipilih
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            // Reset warna menu sidebar
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            // Warnai menu yang aktif
+            document.getElementById(`menu-${tabId}`).classList.add('active');
+
+            // Panggil API sesuai halaman yang dibuka
+            if (tabId === 'catalog' && globalProducts.length === 0) loadProducts();
+            if (tabId === 'orders') loadOrders();
+            if (tabId === 'gateway') loadGatewaySetting();
+        }
+
+        // ==========================================
+        // 1. SISTEM LOGIN (VERSI AMAN)
         // ==========================================
         async function verifyAndEnter(secret, imgbbKey) {
             try {
@@ -299,7 +397,9 @@
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('sidebar').style.display = 'flex';
                     document.getElementById('mainContent').style.display = 'block';
-                    loadProducts();
+                    
+                    // Masuk ke tab default
+                    switchTab('catalog');
                 } else {
                     localStorage.removeItem('sanlucid_admin_secret');
                     alert("Akses Ditolak: Kunci Rahasia Salah!");
@@ -369,6 +469,12 @@
             return `https://wsrv.nl/?url=${rawUrl.replace("i.ibb.co", "i.ibb.co.com")}&w=200&output=webp`;
         }
 
+        function formatDateTime(dateString) {
+            if (!dateString) return "-";
+            const d = new Date(dateString);
+            return d.toLocaleString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
         function showNotification(title, message, type) {
             const notifModal = document.getElementById('notificationModal');
             const notifIcon = document.getElementById('notifIcon');
@@ -394,362 +500,229 @@
         }
 
         // ==========================================
-        // FITUR BARU: UBAH STATUS TUNGGAL (INSTAN)
+        // 3. FITUR: RIWAYAT PEMBELIAN (BARU)
+        // ==========================================
+        async function loadOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = `<tr><td colspan="6" class="p-12 text-center text-slate-400"><i class="fas fa-spinner fa-spin fa-2x mb-3 text-blue-500"></i><p>Memuat riwayat transaksi...</p></td></tr>`;
+            
+            try {
+                const res = await fetch(`${ADMIN_API_URL}/orders`, { headers: getHeaders() });
+                if(!res.ok) throw new Error("Gagal mengambil data pesanan");
+                const data = await res.json();
+                
+                tbody.innerHTML = "";
+                if(data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-12 text-center text-slate-400">Belum ada transaksi.</td></tr>`;
+                    return;
+                }
+
+                data.forEach(o => {
+                    const statusBadge = o.status === 'PAID' 
+                        ? `<span class="bg-green-100 text-green-700 border border-green-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm inline-flex items-center gap-1"><i class="fas fa-check-circle"></i> LUNAS</span>`
+                        : `<span class="bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm inline-flex items-center gap-1"><i class="fas fa-clock"></i> PENDING</span>`;
+                    
+                    const gatewayBadge = o.payment_method === 'qris_statis'
+                        ? `<span class="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1"><i class="fas fa-qrcode"></i> QRIS Personal</span>`
+                        : `<span class="bg-purple-50 text-purple-600 border border-purple-200 px-2 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1"><i class="fas fa-wallet"></i> Pak Kasir</span>`;
+
+                    tbody.innerHTML += `
+                        <tr class="border-b border-gray-100 hover:bg-slate-50 transition-colors">
+                            <td class="p-4 text-xs font-semibold text-slate-600">${formatDateTime(o.created_at)}</td>
+                            <td class="p-4">
+                                <p class="font-bold text-slate-800 line-clamp-1">${o.product_name}</p>
+                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">ORD: ${o.order_id.split('-')[0]}</p>
+                            </td>
+                            <td class="p-4 text-xs font-mono text-slate-500 truncate max-w-[120px]" title="${o.fingerprint}">${o.fingerprint}</td>
+                            <td class="p-4 font-bold text-slate-700">${formatRupiah(o.amount)}</td>
+                            <td class="p-4">${gatewayBadge}</td>
+                            <td class="p-4 text-center">${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-12 text-center text-rose-500">Gagal memuat data.</td></tr>`;
+                showNotification("Gagal", e.message, "error");
+            }
+        }
+
+        // ==========================================
+        // 4. FITUR: PENGATURAN GATEWAY (BARU)
+        // ==========================================
+        function highlightSelectedGateway() {
+            const labels = ['label-pakkasir', 'label-qris'];
+            labels.forEach(id => {
+                document.getElementById(id).classList.remove('border-blue-500', 'bg-blue-50/50');
+                document.getElementById(id).classList.add('border-gray-100');
+            });
+            const selected = document.querySelector('input[name="gateway_option"]:checked').value;
+            const activeId = selected === 'pakkasir' ? 'label-pakkasir' : 'label-qris';
+            document.getElementById(activeId).classList.remove('border-gray-100');
+            document.getElementById(activeId).classList.add('border-blue-500', 'bg-blue-50/50');
+        }
+
+        async function loadGatewaySetting() {
+            try {
+                const res = await fetch(`${ADMIN_API_URL}/settings/gateway`, { headers: getHeaders() });
+                if(res.ok) {
+                    const data = await res.json();
+                    const radios = document.getElementsByName('gateway_option');
+                    for(let i=0; i<radios.length; i++) {
+                        if(radios[i].value === data.active_gateway) {
+                            radios[i].checked = true;
+                            highlightSelectedGateway();
+                            break;
+                        }
+                    }
+                }
+            } catch(e) { console.error("Gagal load setting gateway", e); }
+        }
+
+        async function saveGatewaySetting() {
+            const selected = document.querySelector('input[name="gateway_option"]:checked').value;
+            const btn = document.getElementById('btnSaveGateway');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${ADMIN_API_URL}/settings/gateway`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ active_gateway: selected })
+                });
+                if(!res.ok) throw new Error("Gagal update database");
+                showNotification("Sukses", "Metode Gateway pembayaran etalase berhasil diubah ke: " + (selected === 'pakkasir' ? 'Pak Kasir' : 'QRIS Dinamis'), "success");
+            } catch(e) {
+                showNotification("Gagal", e.message, "error");
+            } finally {
+                btn.innerHTML = ogText;
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // 5. FITUR LAMA: AKTIVASI, FILTER, & PAGINASI KATALOG
         // ==========================================
         Object.defineProperty(window, 'toggleSingleStatus', {
             value: async function(id, newStatus, btnElement) {
                 const p = globalProducts.find(item => String(item.id) === String(id));
                 if(!p) return;
-
                 const originalHtml = btnElement.innerHTML;
                 btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btnElement.disabled = true;
-
-                const payload = {
-                    name: p.name || p.title,
-                    price: Number(p.price) || 0,
-                    kategori: p.kategori || "",
-                    is_active: newStatus,
-                    cover_url: p.cover_url || "",
-                    deskripsi: p.deskripsi || ""
-                };
-
+                const payload = { name: p.name || p.title, price: Number(p.price) || 0, kategori: p.kategori || "", is_active: newStatus, cover_url: p.cover_url || "", deskripsi: p.deskripsi || "" };
                 try {
-                    const res = await fetch(`${ADMIN_API_URL}/products/${id}`, {
-                        method: 'PUT', headers: getHeaders(),
-                        body: JSON.stringify(payload)
-                    });
+                    const res = await fetch(`${ADMIN_API_URL}/products/${id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(payload) });
                     if(!res.ok) throw new Error("Gagal update server.");
-                    p.is_active = newStatus;
-                    window.applyFilterAndSort(true); 
+                    p.is_active = newStatus; window.applyFilterAndSort(true); 
                 } catch(e) {
-                    btnElement.innerHTML = originalHtml;
-                    btnElement.disabled = false;
+                    btnElement.innerHTML = originalHtml; btnElement.disabled = false;
                     showNotification("Gagal", "Tidak dapat mengubah status produk.", "error");
                 }
             }, writable: false, configurable: false
         });
 
-        // ==========================================
-        // FITUR BARU: AKTIFKAN SEMUA DI HALAMAN INI
-        // ==========================================
         Object.defineProperty(window, 'activateAllOnPage', {
             value: async function() {
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-                
-                const drafts = paginatedProducts.filter(p => p.is_active === 0);
-                
-                if (drafts.length === 0) {
-                    showNotification("Info", "Semua produk di halaman ini sudah aktif.", "info");
-                    return;
-                }
-
-                if (!confirm(`Anda akan mengaktifkan ${drafts.length} produk berstatus Draft di halaman ini. Proses ini akan membutuhkan waktu beberapa saat. Lanjutkan?`)) return;
-
+                const drafts = filteredProducts.slice((currentPage - 1) * itemsPerPage, ((currentPage - 1) * itemsPerPage) + itemsPerPage).filter(p => p.is_active === 0);
+                if (drafts.length === 0) return showNotification("Info", "Semua produk di halaman ini sudah aktif.", "info");
+                if (!confirm(`Aktifkan ${drafts.length} produk berstatus Draft di halaman ini?`)) return;
                 const btn = document.getElementById('btnActivatePage');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-                btn.disabled = true;
-
+                const ogText = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...'; btn.disabled = true;
                 let successCount = 0;
                 for (let i = 0; i < drafts.length; i++) {
-                    const p = drafts[i];
-                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Aktif ${i+1} dari ${drafts.length}...`;
-                    
-                    const payload = {
-                        name: p.name || p.title,
-                        price: Number(p.price) || 0,
-                        kategori: p.kategori || "",
-                        is_active: 1,
-                        cover_url: p.cover_url || "",
-                        deskripsi: p.deskripsi || ""
-                    };
-
+                    const p = drafts[i]; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Aktif ${i+1} dari ${drafts.length}...`;
                     try {
-                        const res = await fetch(`${ADMIN_API_URL}/products/${p.id}`, {
-                            method: 'PUT', headers: getHeaders(),
-                            body: JSON.stringify(payload)
-                        });
-                        if (res.ok) {
-                            p.is_active = 1;
-                            successCount++;
-                        }
-                    } catch(e) {
-                        console.error("Gagal aktivasi produk ID: ", p.id);
-                    }
+                        const res = await fetch(`${ADMIN_API_URL}/products/${p.id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify({ name: p.name||p.title, price: Number(p.price)||0, kategori: p.kategori||"", is_active: 1, cover_url: p.cover_url||"", deskripsi: p.deskripsi||"" }) });
+                        if (res.ok) { p.is_active = 1; successCount++; }
+                    } catch(e) {}
                 }
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                window.applyFilterAndSort(true);
-                
+                btn.innerHTML = ogText; btn.disabled = false; window.applyFilterAndSort(true);
                 showNotification("Selesai", `Berhasil mengaktifkan ${successCount} produk di halaman ini.`, "success");
             }, writable: false, configurable: false
         });
 
-        // ==========================================
-        // 3. LOGIKA FILTER, SORT, DAN PAGINASI
-        // ==========================================
-        Object.defineProperty(window, 'toggleClearButton', {
-            value: function() {
-                const input = document.getElementById('searchInput');
-                const btn = document.getElementById('clearSearchBtn');
-                if (input.value.length > 0) btn.classList.remove('hidden');
-                else btn.classList.add('hidden');
-            }, writable: false, configurable: false
-        });
-
-        Object.defineProperty(window, 'clearSearch', {
-            value: function() {
-                const input = document.getElementById('searchInput');
-                input.value = '';
-                window.toggleClearButton();
-                window.applyFilterAndSort(false);
-                input.focus(); 
-            }, writable: false, configurable: false
-        });
-
-        Object.defineProperty(window, 'handleDropdownSort', {
-            value: function(val) {
-                const parts = val.split('_');
-                sortCol = parts[0];
-                sortDesc = parts[1] === 'desc';
-                window.applyFilterAndSort(false); 
-            }, writable: false, configurable: false
-        });
-
-        Object.defineProperty(window, 'handleSort', {
-            value: function(column) {
-                if (sortCol === column) { sortDesc = !sortDesc; } else { sortCol = column; sortDesc = false; }
-                const dd = document.getElementById('sortDropdown');
-                if (dd) {
-                    const val = sortCol + '_' + (sortDesc ? 'desc' : 'asc');
-                    const opt = dd.querySelector(`option[value="${val}"]`);
-                    if (opt) dd.value = val;
-                }
-                window.applyFilterAndSort(false);
-            }, writable: false, configurable: false
-        });
+        Object.defineProperty(window, 'toggleClearButton', { value: function() { const input = document.getElementById('searchInput'); const btn = document.getElementById('clearSearchBtn'); if (input.value.length > 0) btn.classList.remove('hidden'); else btn.classList.add('hidden'); }, writable: false, configurable: false });
+        Object.defineProperty(window, 'clearSearch', { value: function() { const input = document.getElementById('searchInput'); input.value = ''; window.toggleClearButton(); window.applyFilterAndSort(false); input.focus(); }, writable: false, configurable: false });
+        Object.defineProperty(window, 'handleDropdownSort', { value: function(val) { const parts = val.split('_'); sortCol = parts[0]; sortDesc = parts[1] === 'desc'; window.applyFilterAndSort(false); }, writable: false, configurable: false });
+        Object.defineProperty(window, 'handleSort', { value: function(column) { if (sortCol === column) { sortDesc = !sortDesc; } else { sortCol = column; sortDesc = false; } const dd = document.getElementById('sortDropdown'); if (dd) { const val = sortCol + '_' + (sortDesc ? 'desc' : 'asc'); const opt = dd.querySelector(`option[value="${val}"]`); if (opt) dd.value = val; } window.applyFilterAndSort(false); }, writable: false, configurable: false });
 
         Object.defineProperty(window, 'applyFilterAndSort', {
             value: function(keepPage = false) {
                 const query = document.getElementById('searchInput').value.toLowerCase();
-                filteredProducts = globalProducts.filter(p => {
-                    return (p.name || p.title || '').toLowerCase().includes(query) || 
-                           (p.kategori || '').toLowerCase().includes(query) ||
-                           String(p.id).toLowerCase().includes(query);
-                });
-
+                filteredProducts = globalProducts.filter(p => { return (p.name || p.title || '').toLowerCase().includes(query) || (p.kategori || '').toLowerCase().includes(query) || String(p.id).toLowerCase().includes(query); });
                 filteredProducts.sort((a, b) => {
                     let valA = a[sortCol]; let valB = b[sortCol];
-                    if (sortCol === 'name') { 
-                        valA = (a.name || a.title || '').toLowerCase(); 
-                        valB = (b.name || b.title || '').toLowerCase(); 
-                    } else { 
-                        valA = Number(valA) || 0; valB = Number(valB) || 0; 
-                    }
-                    if (valA < valB) return sortDesc ? 1 : -1;
-                    if (valA > valB) return sortDesc ? -1 : 1;
-                    return 0;
+                    if (sortCol === 'name') { valA = (a.name || a.title || '').toLowerCase(); valB = (b.name || b.title || '').toLowerCase(); } else { valA = Number(valA) || 0; valB = Number(valB) || 0; }
+                    if (valA < valB) return sortDesc ? 1 : -1; if (valA > valB) return sortDesc ? -1 : 1; return 0;
                 });
-                
                 if (!keepPage) currentPage = 1; 
-                updateSortIcons(); 
-                renderTable();
+                updateSortIcons(); renderTable();
             }, writable: false, configurable: false
         });
 
-        Object.defineProperty(window, 'prevPage', {
-            value: function() {
-                if (currentPage > 1) { currentPage--; renderTable(); }
-            }, writable: false, configurable: false
-        });
-
-        Object.defineProperty(window, 'nextPage', {
-            value: function() {
-                const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-                if (currentPage < totalPages) { currentPage++; renderTable(); }
-            }, writable: false, configurable: false
-        });
-
-        Object.defineProperty(window, 'jumpToPage', {
-            value: function(val) {
-                let page = parseInt(val);
-                const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
-                if (isNaN(page) || page < 1) page = 1;
-                if (page > totalPages) page = totalPages;
-                currentPage = page;
-                renderTable();
-            }, writable: false, configurable: false
-        });
+        Object.defineProperty(window, 'prevPage', { value: function() { if (currentPage > 1) { currentPage--; renderTable(); } }, writable: false, configurable: false });
+        Object.defineProperty(window, 'nextPage', { value: function() { const totalPages = Math.ceil(filteredProducts.length / itemsPerPage); if (currentPage < totalPages) { currentPage++; renderTable(); } }, writable: false, configurable: false });
+        Object.defineProperty(window, 'jumpToPage', { value: function(val) { let page = parseInt(val); const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1; if (isNaN(page) || page < 1) page = 1; if (page > totalPages) page = totalPages; currentPage = page; renderTable(); }, writable: false, configurable: false });
 
         function updateSortIcons() {
             const cols = ['name', 'price', 'is_active'];
             cols.forEach(col => {
                 const icon = document.getElementById(`sortIcon-${col}`);
-                if (icon) {
-                    icon.className = 'fas ml-1';
-                    if (col === sortCol) {
-                        icon.classList.add(sortDesc ? 'fa-sort-down' : 'fa-sort-up');
-                        icon.classList.add('text-blue-500'); icon.classList.remove('text-slate-300');
-                    } else {
-                        icon.classList.add('fa-sort');
-                        icon.classList.add('text-slate-300'); icon.classList.remove('text-blue-500');
-                    }
-                }
+                if (icon) { icon.className = 'fas ml-1'; if (col === sortCol) { icon.classList.add(sortDesc ? 'fa-sort-down' : 'fa-sort-up', 'text-blue-500'); icon.classList.remove('text-slate-300'); } else { icon.classList.add('fa-sort', 'text-slate-300'); icon.classList.remove('text-blue-500'); } }
             });
         }
 
-        // ==========================================
-        // 4. FETCH DATA (DARI DATABASE REAL-TIME VIA BACKEND)
-        // ==========================================
         async function loadProducts(keepPage = false) {
             try {
-                const res = await fetch(`${ADMIN_API_URL}/products`, {
-                    headers: getHeaders()
-                });
-                
-                if (!res.ok) {
-                    if(res.status === 401) {
-                        logoutAdmin();
-                        throw new Error("Sesi berakhir atau Kunci Rahasia salah.");
-                    }
-                    throw new Error(`Gagal mengambil data dari Server: ${res.status}`);
-                }
-
-                globalProducts = await res.json();
-                window.applyFilterAndSort(keepPage);
-            } catch (err) {
-                showNotification("Perhatian", err.message, "warning");
-                console.error(err);
-            }
+                const res = await fetch(`${ADMIN_API_URL}/products`, { headers: getHeaders() });
+                if (!res.ok) { if(res.status === 401) { logoutAdmin(); throw new Error("Sesi berakhir atau Kunci Rahasia salah."); } throw new Error(`Gagal mengambil data dari Server: ${res.status}`); }
+                globalProducts = await res.json(); window.applyFilterAndSort(keepPage);
+            } catch (err) { showNotification("Perhatian", err.message, "warning"); }
         }
 
         function renderTable() {
-            const tbody = document.getElementById('catalogTableBody');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('catalogTableBody'); tbody.innerHTML = '';
             document.getElementById('totalProductCounter').innerText = `Total: ${filteredProducts.length} Produk`;
-
             const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
-            
-            const pageInput = document.getElementById('pageInput');
-            if (pageInput) {
-                pageInput.value = currentPage;
-                document.getElementById('totalPagesIndicator').innerText = totalPages;
-            }
-            
-            document.getElementById('btnPrevPage').disabled = currentPage === 1;
-            document.getElementById('btnNextPage').disabled = currentPage === totalPages;
-
-            if (filteredProducts.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-12 text-center text-slate-400">Data tidak ditemukan.</td></tr>`;
-                return;
-            }
-
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+            if (document.getElementById('pageInput')) { document.getElementById('pageInput').value = currentPage; document.getElementById('totalPagesIndicator').innerText = totalPages; }
+            document.getElementById('btnPrevPage').disabled = currentPage === 1; document.getElementById('btnNextPage').disabled = currentPage === totalPages;
+            if (filteredProducts.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-12 text-center text-slate-400">Data tidak ditemukan.</td></tr>`; return; }
+            const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, ((currentPage - 1) * itemsPerPage) + itemsPerPage);
 
             paginatedProducts.forEach(p => {
-                // TOMBOL STATUS BARU: Bisa langsung ditekan
                 const nextStatus = p.is_active === 1 ? 0 : 1;
-                const statusBadge = p.is_active === 1 
-                    ? `<button onclick="window.toggleSingleStatus('${p.id}', ${nextStatus}, this)" class="bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded-md text-[10px] font-bold transition-colors shadow-sm border border-green-200 w-20"><i class="fas fa-check-circle mr-1"></i> Aktif</button>`
-                    : `<button onclick="window.toggleSingleStatus('${p.id}', ${nextStatus}, this)" class="bg-slate-100 text-slate-500 hover:bg-slate-200 px-2 py-1 rounded-md text-[10px] font-bold transition-colors shadow-sm border border-slate-200 w-20"><i class="fas fa-eye-slash mr-1"></i> Draft</button>`;
-
-                const safeImgUrl = getSafeImageUrl(p.cover_url);
+                const statusBadge = p.is_active === 1 ? `<button onclick="window.toggleSingleStatus('${p.id}', ${nextStatus}, this)" class="bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded-md text-[10px] font-bold transition-colors shadow-sm border border-green-200 w-20"><i class="fas fa-check-circle mr-1"></i> Aktif</button>` : `<button onclick="window.toggleSingleStatus('${p.id}', ${nextStatus}, this)" class="bg-slate-100 text-slate-500 hover:bg-slate-200 px-2 py-1 rounded-md text-[10px] font-bold transition-colors shadow-sm border border-slate-200 w-20"><i class="fas fa-eye-slash mr-1"></i> Draft</button>`;
                 const isChecked = selectedIds.has(String(p.id)) ? 'checked' : '';
-
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-100 table-row-hover transition-colors">
-                        <td class="p-4 text-center">
-                            <input type="checkbox" class="row-cb cursor-pointer w-4 h-4 rounded text-blue-600 border-gray-300" value="${p.id}" onclick="toggleRow('${p.id}', this.checked)" ${isChecked}>
-                        </td>
-                        <td class="p-4">
-                            <img src="${safeImgUrl}" class="w-12 h-16 rounded-lg object-cover border border-gray-200">
-                        </td>
-                        <td class="p-4">
-                            <p class="font-bold text-slate-800 line-clamp-1">${p.name || p.title || 'Tanpa Judul'}</p>
-                            <p class="text-[10px] text-slate-400 font-mono">ID: ${p.id}</p>
-                        </td>
+                        <td class="p-4 text-center"><input type="checkbox" class="row-cb cursor-pointer w-4 h-4 rounded text-blue-600 border-gray-300" value="${p.id}" onclick="toggleRow('${p.id}', this.checked)" ${isChecked}></td>
+                        <td class="p-4"><img src="${getSafeImageUrl(p.cover_url)}" class="w-12 h-16 rounded-lg object-cover border border-gray-200"></td>
+                        <td class="p-4"><p class="font-bold text-slate-800 line-clamp-1">${p.name || p.title || 'Tanpa Judul'}</p><p class="text-[10px] text-slate-400 font-mono">ID: ${p.id}</p></td>
                         <td class="p-4 font-semibold text-slate-600">${formatRupiah(p.price)}</td>
                         <td class="p-4 text-xs font-semibold text-slate-500">${p.kategori || 'Tanpa Kategori'}</td>
                         <td class="p-4 text-center">${statusBadge}</td>
-                        <td class="p-4 text-center">
-                            <button onclick="triggerEdit('${p.id}')" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition shadow-sm border border-blue-100" title="Edit Detail">
-                                <i class="fas fa-pen"></i>
-                            </button>
-                        </td>
+                        <td class="p-4 text-center"><button onclick="triggerEdit('${p.id}')" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition shadow-sm border border-blue-100" title="Edit Detail"><i class="fas fa-pen"></i></button></td>
                     </tr>`;
             });
         }
 
         // ==========================================
-        // 5. FITUR EDIT MASSAL
+        // 6. FITUR LAMA: EDIT MASSAL & TUNGGAL
         // ==========================================
-        Object.defineProperty(window, 'toggleRow', {
-            value: function(id, isChecked) {
-                if (isChecked) selectedIds.add(String(id));
-                else selectedIds.delete(String(id));
-                updateBulkButton();
-            }, writable: false, configurable: false
-        });
-
-        Object.defineProperty(window, 'toggleAll', {
-            value: function(isChecked) {
-                const cbs = document.querySelectorAll('.row-cb');
-                cbs.forEach(cb => {
-                    cb.checked = isChecked;
-                    if (isChecked) selectedIds.add(String(cb.value));
-                    else selectedIds.delete(String(cb.value));
-                });
-                updateBulkButton();
-            }, writable: false, configurable: false
-        });
-
-        function updateBulkButton() {
-            const btnEdit = document.getElementById('btnBulkEdit');
-            document.getElementById('bulkCount').innerText = selectedIds.size;
-            if (selectedIds.size > 0) { btnEdit.classList.remove('hidden'); } 
-            else { btnEdit.classList.add('hidden'); document.getElementById('selectAllCb').checked = false; }
-        }
+        Object.defineProperty(window, 'toggleRow', { value: function(id, isChecked) { if (isChecked) selectedIds.add(String(id)); else selectedIds.delete(String(id)); updateBulkButton(); }, writable: false, configurable: false });
+        Object.defineProperty(window, 'toggleAll', { value: function(isChecked) { const cbs = document.querySelectorAll('.row-cb'); cbs.forEach(cb => { cb.checked = isChecked; if (isChecked) selectedIds.add(String(cb.value)); else selectedIds.delete(String(cb.value)); }); updateBulkButton(); }, writable: false, configurable: false });
+        function updateBulkButton() { const btnEdit = document.getElementById('btnBulkEdit'); document.getElementById('bulkCount').innerText = selectedIds.size; if (selectedIds.size > 0) { btnEdit.classList.remove('hidden'); } else { btnEdit.classList.add('hidden'); document.getElementById('selectAllCb').checked = false; } }
 
         Object.defineProperty(window, 'openBulkEditModal', {
             value: function() {
-                const container = document.getElementById('bulkEditContainer');
-                container.innerHTML = '';
-                
+                const container = document.getElementById('bulkEditContainer'); container.innerHTML = '';
                 selectedIds.forEach(id => {
                     const prod = globalProducts.find(p => String(p.id) === id);
                     if (prod) {
-                        const div = document.createElement('div');
-                        div.className = 'p-4 bg-white border border-gray-200 rounded-xl mb-3 shadow-sm bulk-item transition hover:border-blue-300';
-                        div.dataset.id = prod.id;
-                        div.innerHTML = `
-                            <div class="font-bold text-slate-700 mb-3 border-b border-gray-100 pb-2 flex justify-between items-center">
-                                <span class="truncate flex-1 text-sm"><i class="fas fa-book text-blue-500 mr-2"></i>${prod.name || prod.title}</span>
-                                <span class="text-[10px] text-slate-400 font-mono ml-2 bg-slate-100 px-2 py-1 rounded">ID: ${prod.id}</span>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase">Harga (Rp)</label>
-                                    <input type="number" class="neu-input w-full p-2 text-xs bulk-price" value="${Number(prod.price) || 0}">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase">Kategori</label>
-                                    <input type="text" class="neu-input w-full p-2 text-xs bulk-category" value="${prod.kategori || ''}">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase">Status Visibilitas</label>
-                                    <select class="neu-input w-full p-2 text-xs bulk-status">
-                                        <option value="1" ${prod.is_active === 1 ? 'selected' : ''}>Aktif</option>
-                                        <option value="0" ${prod.is_active === 0 ? 'selected' : ''}>Draft</option>
-                                    </select>
-                                </div>
-                            </div>
-                        `;
+                        const div = document.createElement('div'); div.className = 'p-4 bg-white border border-gray-200 rounded-xl mb-3 shadow-sm bulk-item transition hover:border-blue-300'; div.dataset.id = prod.id;
+                        div.innerHTML = `<div class="font-bold text-slate-700 mb-3 border-b border-gray-100 pb-2 flex justify-between items-center"><span class="truncate flex-1 text-sm"><i class="fas fa-book text-blue-500 mr-2"></i>${prod.name || prod.title}</span><span class="text-[10px] text-slate-400 font-mono ml-2 bg-slate-100 px-2 py-1 rounded">ID: ${prod.id}</span></div><div class="grid grid-cols-1 md:grid-cols-3 gap-3"><div><label class="text-[10px] font-bold text-slate-500 uppercase">Harga (Rp)</label><input type="number" class="neu-input w-full p-2 text-xs bulk-price" value="${Number(prod.price) || 0}"></div><div><label class="text-[10px] font-bold text-slate-500 uppercase">Kategori</label><input type="text" class="neu-input w-full p-2 text-xs bulk-category" value="${prod.kategori || ''}"></div><div><label class="text-[10px] font-bold text-slate-500 uppercase">Status Visibilitas</label><select class="neu-input w-full p-2 text-xs bulk-status"><option value="1" ${prod.is_active === 1 ? 'selected' : ''}>Aktif</option><option value="0" ${prod.is_active === 0 ? 'selected' : ''}>Draft</option></select></div></div>`;
                         container.appendChild(div);
                     }
                 });
@@ -757,178 +730,50 @@
             }, writable: false, configurable: false
         });
 
-        Object.defineProperty(window, 'closeBulkEditModal', {
-            value: function() { document.getElementById('bulkEditModal').classList.remove('active'); }, writable: false, configurable: false
-        });
+        Object.defineProperty(window, 'closeBulkEditModal', { value: function() { document.getElementById('bulkEditModal').classList.remove('active'); }, writable: false, configurable: false });
 
         Object.defineProperty(window, 'saveBulkEdit', {
             value: async function() {
-                const items = document.querySelectorAll('.bulk-item');
-                const btn = document.getElementById('btnSaveBulkEdit');
-                const originalText = btn.innerHTML;
-                
-                btn.disabled = true;
-
-                let successCount = 0; let failCount = 0;
-
-                let currentItem = 1;
+                const items = document.querySelectorAll('.bulk-item'); const btn = document.getElementById('btnSaveBulkEdit'); const originalText = btn.innerHTML; btn.disabled = true;
+                let successCount = 0; let failCount = 0; let currentItem = 1;
                 for (const item of items) {
                     btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Menyimpan Produk ${currentItem} dari ${items.length} ke Database...`;
-                    
-                    const id = item.dataset.id;
-                    const prod = globalProducts.find(p => String(p.id) === id);
-                    
-                    const payload = {
-                        name: prod.name || prod.title,
-                        price: Number(item.querySelector('.bulk-price').value),
-                        kategori: item.querySelector('.bulk-category').value,
-                        is_active: Number(item.querySelector('.bulk-status').value),
-                        cover_url: prod.cover_url,
-                        deskripsi: prod.deskripsi
-                    };
-
-                    try {
-                        const response = await fetch(`${ADMIN_API_URL}/products/${id}`, {
-                            method: 'PUT', headers: getHeaders(),
-                            body: JSON.stringify(payload)
-                        });
-                        
-                        if (!response.ok) throw new Error("Gagal");
-                        
-                        prod.price = payload.price;
-                        prod.kategori = payload.kategori;
-                        prod.is_active = payload.is_active;
-
-                        successCount++;
-                    } catch (e) { failCount++; }
-                    
+                    const id = item.dataset.id; const prod = globalProducts.find(p => String(p.id) === id);
+                    const payload = { name: prod.name || prod.title, price: Number(item.querySelector('.bulk-price').value), kategori: item.querySelector('.bulk-category').value, is_active: Number(item.querySelector('.bulk-status').value), cover_url: prod.cover_url, deskripsi: prod.deskripsi };
+                    try { const response = await fetch(`${ADMIN_API_URL}/products/${id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(payload) }); if (!response.ok) throw new Error("Gagal"); prod.price = payload.price; prod.kategori = payload.kategori; prod.is_active = payload.is_active; successCount++; } catch (e) { failCount++; }
                     currentItem++;
                 }
-
-                btn.innerHTML = originalText; btn.disabled = false;
-                window.closeBulkEditModal();
-                
-                if (failCount === 0) showNotification("Selesai", `${successCount} produk sukses diperbarui secara Real-Time!`, "success");
-                else showNotification("Peringatan", `${successCount} sukses, ${failCount} gagal diperbarui.`, "warning");
-                
-                selectedIds.clear(); updateBulkButton();
-                document.getElementById('selectAllCb').checked = false;
-                
-                window.applyFilterAndSort(true); 
+                btn.innerHTML = originalText; btn.disabled = false; window.closeBulkEditModal();
+                if (failCount === 0) showNotification("Selesai", `${successCount} produk sukses diperbarui!`, "success"); else showNotification("Peringatan", `${successCount} sukses, ${failCount} gagal.`, "warning");
+                selectedIds.clear(); updateBulkButton(); document.getElementById('selectAllCb').checked = false; window.applyFilterAndSort(true); 
             }, writable: false, configurable: false
         });
 
-        // ==========================================
-        // 6. FITUR EDIT TUNGGAL (MODAL)
-        // ==========================================
         Object.defineProperty(window, 'triggerEdit', {
             value: function(id) {
-                const p = globalProducts.find(item => String(item.id) === String(id));
-                if(!p) return;
-                
-                document.getElementById('editProdId').value = p.id;
-                document.getElementById('editProdName').value = p.name || p.title;
-                document.getElementById('editProdPrice').value = p.price;
-                document.getElementById('editProdCategory').value = p.kategori;
-                document.getElementById('editProdStatus').value = p.is_active;
-                document.getElementById('editProdDesc').value = p.deskripsi;
-                
-                document.getElementById('existingCoverUrl').value = p.cover_url;
-                document.getElementById('previewImg').src = getSafeImageUrl(p.cover_url);
-                document.getElementById('uploadCoverInput').value = '';
-                
-                document.getElementById('editModal').classList.add('active');
+                const p = globalProducts.find(item => String(item.id) === String(id)); if(!p) return;
+                document.getElementById('editProdId').value = p.id; document.getElementById('editProdName').value = p.name || p.title; document.getElementById('editProdPrice').value = p.price; document.getElementById('editProdCategory').value = p.kategori; document.getElementById('editProdStatus').value = p.is_active; document.getElementById('editProdDesc').value = p.deskripsi; document.getElementById('existingCoverUrl').value = p.cover_url; document.getElementById('previewImg').src = getSafeImageUrl(p.cover_url); document.getElementById('uploadCoverInput').value = ''; document.getElementById('editModal').classList.add('active');
             }, writable: false, configurable: false
         });
 
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
-
-        function previewSelectedImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) { document.getElementById('previewImg').src = e.target.result; }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
+        function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
+        function previewSelectedImage(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { document.getElementById('previewImg').src = e.target.result; }; reader.readAsDataURL(input.files[0]); } }
 
         async function saveProductEdit() {
-            const id = document.getElementById('editProdId').value;
-            const btn = document.getElementById('btnSaveEdit');
-            const fileInput = document.getElementById('uploadCoverInput');
-            let finalCoverUrl = document.getElementById('existingCoverUrl').value;
-
-            btn.disabled = true;
-
+            const id = document.getElementById('editProdId').value; const btn = document.getElementById('btnSaveEdit'); const fileInput = document.getElementById('uploadCoverInput'); let finalCoverUrl = document.getElementById('existingCoverUrl').value; btn.disabled = true;
             if (fileInput.files.length > 0) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengunggah Foto...';
-                const imgbbKey = localStorage.getItem('sanlucid_imgbb_key');
-                const formData = new FormData();
-                formData.append("image", fileInput.files[0]);
-
-                try {
-                    const uploadRes = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
-                        method: 'POST', body: formData
-                    });
-                    const uploadData = await uploadRes.json();
-                    
-                    if (uploadData.success) {
-                        finalCoverUrl = uploadData.data.url;
-                    } else {
-                        throw new Error("Gagal mendapat respon dari ImgBB");
-                    }
-                } catch (e) {
-                    showNotification("Upload Gagal", "Pastikan API Key ImgBB valid!", "error");
-                    btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Seluruh Perubahan';
-                    btn.disabled = false;
-                    return; 
-                }
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengunggah Foto...'; const imgbbKey = localStorage.getItem('sanlucid_imgbb_key'); const formData = new FormData(); formData.append("image", fileInput.files[0]);
+                try { const uploadRes = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, { method: 'POST', body: formData }); const uploadData = await uploadRes.json(); if (uploadData.success) { finalCoverUrl = uploadData.data.url; } else { throw new Error("Gagal mendapat respon dari ImgBB"); } } catch (e) { showNotification("Upload Gagal", "Pastikan API Key ImgBB valid!", "error"); btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Seluruh Perubahan'; btn.disabled = false; return; }
             }
-
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Menyimpan ke Database...';
-            
-            const payload = {
-                name: document.getElementById('editProdName').value,
-                price: parseInt(document.getElementById('editProdPrice').value) || 0,
-                kategori: document.getElementById('editProdCategory').value,
-                cover_url: finalCoverUrl,
-                is_active: parseInt(document.getElementById('editProdStatus').value),
-                deskripsi: document.getElementById('editProdDesc').value,
-            };
-
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Menyimpan...';
+            const payload = { name: document.getElementById('editProdName').value, price: parseInt(document.getElementById('editProdPrice').value) || 0, kategori: document.getElementById('editProdCategory').value, cover_url: finalCoverUrl, is_active: parseInt(document.getElementById('editProdStatus').value), deskripsi: document.getElementById('editProdDesc').value };
             try {
-                const res = await fetch(`${ADMIN_API_URL}/products/${id}`, {
-                    method: 'PUT', headers: getHeaders(),
-                    body: JSON.stringify(payload)
-                });
-
+                const res = await fetch(`${ADMIN_API_URL}/products/${id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(payload) });
                 if(res.ok) {
-                    closeEditModal();
-                    showNotification("Berhasil", "Data sukses diperbarui secara Real-Time!", "success");
-                    
-                    const updatedProdIndex = globalProducts.findIndex(p => String(p.id) === String(id));
-                    if (updatedProdIndex !== -1) {
-                        globalProducts[updatedProdIndex].name = payload.name;
-                        globalProducts[updatedProdIndex].price = payload.price;
-                        globalProducts[updatedProdIndex].kategori = payload.kategori;
-                        globalProducts[updatedProdIndex].is_active = payload.is_active;
-                        globalProducts[updatedProdIndex].deskripsi = payload.deskripsi;
-                        globalProducts[updatedProdIndex].cover_url = payload.cover_url;
-                    }
-                    
-                    window.applyFilterAndSort(true); 
-
-                } else {
-                    const errTxt = await res.text();
-                    throw new Error(errTxt);
-                }
-            } catch (err) {
-                showNotification("Gagal Disimpan", "Kesalahan saat menyimpan: " + err.message, "error");
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Seluruh Perubahan';
-                btn.disabled = false;
-            }
+                    closeEditModal(); showNotification("Berhasil", "Data sukses diperbarui!", "success");
+                    const idx = globalProducts.findIndex(p => String(p.id) === String(id)); if (idx !== -1) { Object.assign(globalProducts[idx], payload); } window.applyFilterAndSort(true); 
+                } else { const errTxt = await res.text(); throw new Error(errTxt); }
+            } catch (err) { showNotification("Gagal Disimpan", "Kesalahan saat menyimpan: " + err.message, "error"); } finally { btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Seluruh Perubahan'; btn.disabled = false; }
         }
     </script>
 </body>
