@@ -527,7 +527,7 @@
                     <td class="p-4 text-xs font-semibold text-slate-600 whitespace-nowrap">${formatDateTime(o.created_at)}</td>
                     <td class="p-4">
                         <div class="flex items-center gap-3">
-                            <img src="${safeImg}" class="w-10 h-14 rounded-lg object-cover border border-gray-200 shadow-sm flex-shrink-0">
+                            <img src="${safeImg}" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/100x140/1e293b/94a3b8?text=Tanpa+Cover';" class="w-10 h-14 rounded-lg object-cover border border-gray-200 shadow-sm flex-shrink-0">
                             <div>
                                 <p class="font-bold text-slate-800 line-clamp-1">${o.product_name}</p>
                                 <p class="text-[10px] text-slate-400 font-mono mt-0.5">ORD: ${o.order_id.split('-')[0]}</p>
@@ -699,7 +699,7 @@
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-100 table-row-hover transition-colors">
                         <td class="p-4 text-center"><input type="checkbox" class="row-cb cursor-pointer w-4 h-4 rounded text-blue-600 border-gray-300" value="${p.id}" onclick="toggleRow('${p.id}', this.checked)" ${isChecked}></td>
-                        <td class="p-4"><img src="${getSafeImageUrl(p.cover_url)}" class="w-12 h-16 rounded-lg object-cover border border-gray-200"></td>
+                        <td class="p-4"><img src="${getSafeImageUrl(p.cover_url)}" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/100x140/1e293b/94a3b8?text=Tanpa+Cover';" class="w-12 h-16 rounded-lg object-cover border border-gray-200"></td>
                         <td class="p-4"><p class="font-bold text-slate-800 line-clamp-1">${p.name || p.title || 'Tanpa Judul'}</p><p class="text-[10px] text-slate-400 font-mono">ID: ${p.id}</p></td>
                         <td class="p-4 font-semibold text-slate-600">${formatRupiah(p.price)}</td>
                         <td class="p-4 text-xs font-semibold text-slate-500">${p.kategori || 'Tanpa Kategori'}</td>
