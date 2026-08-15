@@ -362,20 +362,14 @@
         const itemsPerPage = 50;
 
         // ==========================================
-        // 0. TAB NAVIGATION LOGIC (BARU)
+        // 0. TAB NAVIGATION LOGIC
         // ==========================================
         function switchTab(tabId) {
-            // Sembunyikan semua tab
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            // Tampilkan tab yang dipilih
             document.getElementById(`tab-${tabId}`).classList.add('active');
-
-            // Reset warna menu sidebar
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            // Warnai menu yang aktif
             document.getElementById(`menu-${tabId}`).classList.add('active');
 
-            // Panggil API sesuai halaman yang dibuka
             if (tabId === 'catalog' && globalProducts.length === 0) loadProducts();
             if (tabId === 'orders') loadOrders();
             if (tabId === 'gateway') loadGatewaySetting();
@@ -398,7 +392,6 @@
                     document.getElementById('sidebar').style.display = 'flex';
                     document.getElementById('mainContent').style.display = 'block';
                     
-                    // Masuk ke tab default
                     switchTab('catalog');
                 } else {
                     localStorage.removeItem('sanlucid_admin_secret');
@@ -500,7 +493,7 @@
         }
 
         // ==========================================
-        // 3. FITUR: RIWAYAT PEMBELIAN (BARU)
+        // 3. FITUR: RIWAYAT PEMBELIAN
         // ==========================================
         async function loadOrders() {
             const tbody = document.getElementById('ordersTableBody');
@@ -547,7 +540,7 @@
         }
 
         // ==========================================
-        // 4. FITUR: PENGATURAN GATEWAY (BARU)
+        // 4. FITUR: PENGATURAN GATEWAY
         // ==========================================
         function highlightSelectedGateway() {
             const labels = ['label-pakkasir', 'label-qris'];
@@ -602,7 +595,7 @@
         }
 
         // ==========================================
-        // 5. FITUR LAMA: AKTIVASI, FILTER, & PAGINASI KATALOG
+        // 5. FITUR: KATALOG PRODUK
         // ==========================================
         Object.defineProperty(window, 'toggleSingleStatus', {
             value: async function(id, newStatus, btnElement) {
